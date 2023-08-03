@@ -1,0 +1,6 @@
+[global]
+current_season: 2022
+
+[column-settings]
+game_data: "game_id","old_game_id","home_team","away_team","season_type","game_date","div_game","roof","surface","home_coach","away_coach","stadium_id","game_stadium","game_date","start_time","stadium","weather"
+play_data: "play_id","game_id","yardline_100","quarter_seconds_remaining","half_seconds_remaining","game_seconds_remaining","game_half","qtr","down","ydstogo","goal_to_go","time","play_type","run_location","run_gap","offense_formation","offense_personnel","defenders_in_box","defense_personnel","number_of_pass_rushers","players_on_play","offense_players","defense_players","n_offense","n_defense"
