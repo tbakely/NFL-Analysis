@@ -43,7 +43,6 @@ GAME_DATA_COLS = [
     "home_team",
     "away_team",
     "season_type",
-    "game_date",
     "div_game",
     "roof",
     "surface",
@@ -172,7 +171,6 @@ RUSHING_COLS = [
     "rush",
     "rusher_id",
     "defenders_in_box",
-    "number_of_pass_rushers",
 ]
 
 # Receiving stats, add base cols
