@@ -5,6 +5,7 @@ import requests
 import json
 import numpy as np
 import warnings
+from fantasyprosdata import FantasyProsData
 
 warnings.filterwarnings("ignore")
 
@@ -20,7 +21,12 @@ def execute_statement(sql: str):
 class SleeperLeague:
     # remember to incorporate json_normalize when rosters are set
     def __init__(
-        self, league_id: int, year: int = None, json: bool = False, dynasty=False
+        self,
+        league_id: int,
+        year: int = None,
+        scoring: str = None,
+        json: bool = False,
+        dynasty=False,
     ):
         self.league_id = str(league_id)
         self.year = year
@@ -28,9 +34,19 @@ class SleeperLeague:
         self.dynasty = dynasty
         self.sleeper_ids = execute_statement(
             "select sleeper_id as id, name from full_ids"
-        )
+        ).dropna()
         self.sleeper_ids["id"] = (
-            self.sleeper_ids["id"].astype(str).apply(lambda x: x[:-2])
+            self.sleeper_ids["id"].astype(int).astype(str).str.zfill(4)
+        )
+        self.proj_points = FantasyProsData(scoring).projected_points(1)[
+            ["Player", "FPTS"]
+        ]
+        self.points_map = (
+            self.sleeper_ids.merge(
+                self.proj_points, left_on=["name"], right_on=["Player"], how="left"
+            )[["id", "FPTS"]]
+            .set_index("id")
+            .to_dict()["FPTS"]
         )
 
     def get_data(self, url):
@@ -58,6 +74,9 @@ class SleeperLeague:
         temp = json_normalize(rosters["settings"])
         rosters = pd.concat([rosters, temp], axis=1).drop("settings", axis=1)
 
+        test = self.sleeper_ids[["name"]]
+        test
+
         sleeper_ids_dict = (
             self.sleeper_ids[["id", "name"]].set_index("id").to_dict()["name"]
         )
@@ -65,7 +84,7 @@ class SleeperLeague:
         df_rows = []
         if self.dynasty:
             rosters["starters_mapped"] = rosters["starters"].apply(
-                lambda x: [sleeper_ids_dict[k] for k in x]
+                lambda x: [sleeper_ids_dict[k] for k in [str(id).zfill(4) for id in x]]
             )
             start_positions = [
                 "QB",
@@ -127,3 +146,13 @@ class SleeperLeague:
             weekly_data["sleeper_id"].astype(int).astype(str).isin(not_available), 0, 1
         )
         return weekly_data.drop_duplicates()
+
+    def transactions(self, week):
+        url = f"https://api.sleeper.app/v1/league/{self.league_id}/transactions/{week}"
+        transactions = self.get_data(url)
+        return transactions
+
+    def matchups(self, week):
+        url = f"https://api.sleeper.app/v1/league/{self.league_id}/matchups/{week}"
+        matchups = self.get_data(url)
+        return matchups

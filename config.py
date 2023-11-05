@@ -433,3 +433,373 @@ PENALTY_COLS = [
     "penalty_yards",
     "penalty_type",
 ]
+
+CREATE_VIEWS = """
+/* snap counts */
+create view current_season_data.offense_snap_counts as
+select 
+ids.id,
+season,
+week,
+offense_snaps,
+offense_pct
+from current_season_data.snap_count_data
+left join
+	(select distinct name, gsis_id as id from current_season_data.full_ids) ids
+on current_season_data.snap_count_data.player = ids.name;
+
+
+/* weekly_qb */
+create view current_season_data.weekly_qb as
+select
+	player_name,
+	position,
+	recent_team,
+	wd.season,
+	wd.week,
+	case when wd.attempts <> 0 then cast((wd.completions/wd.attempts) as numeric(3,2)) else null end as comp_pct,
+	passing_yards,
+	passing_tds,
+	wd.interceptions,
+	sacks,
+	sack_yards,
+	passing_air_yards,
+	passing_yards_after_catch,
+	passing_first_downs,
+	passing_epa,
+	dakota,
+	pacr,
+	avg_time_to_throw,
+	avg_completed_air_yards,
+	avg_intended_air_yards,
+	avg_air_yards_differential,
+	aggressiveness,
+	max_completed_air_distance,
+	avg_air_yards_to_sticks,
+	passer_rating,
+	completion_percentage_above_expectation,
+	avg_air_distance,
+	carries,
+	rushing_yards,
+	rushing_tds,
+	rushing_fumbles,
+	rushing_fumbles_lost,
+	rushing_first_downs,
+	rushing_epa,
+	offense_snaps,
+	offense_pct,
+	(carries + wd.attempts) as total_usage,
+	roof,
+	surface,
+	weather_hazards,
+	temp,
+	humidity,
+	wind_speed,
+	total_blitz,
+	case when offense_snaps <> 0 then (total_blitz / offense_snaps) else null end as blitz_faced_pct
+from current_season_data.weekly_data wd
+left join current_season_data.ngs_passing_data ngs
+on wd.player_id = ngs.player_gsis_id
+and wd.season = ngs.season
+and wd.week = ngs.week
+left join current_season_data.offense_snap_counts os
+on wd.player_id = os.id
+and wd.season = os.season
+and wd.week = os.week
+left join (select distinct passer_player_id, game_id, season, week from current_season_data.full_pbp) game_id
+on wd.player_id = game_id.passer_player_id
+and wd.season = game_id.season
+and wd.week = game_id.week
+left join current_season_data.game_data
+on game_data.game_id = game_id.game_id
+left join (
+select
+	passer_player_id,
+	season,
+	week,
+	sum(blitz) as total_blitz
+from current_season_data.full_pbp
+where play_type = 'pass'
+and two_point_attempt = 0
+group by passer_player_id, season, week
+) blitz
+on wd.player_id = blitz.passer_player_id
+and wd.season = blitz.season
+and wd.week = blitz.week
+where position = 'QB'
+and wd.attempts > 0;
+
+/* weekly wr stats */
+create view current_season_data.weekly_wr as
+select
+	player_id,
+	player_name,
+	position,
+	recent_team,
+	wd.season,
+	wd.week,
+	wd.receptions,
+	wd.targets,
+	receiving_yards,
+	receiving_tds,
+	receiving_fumbles,
+	receiving_fumbles_lost,
+	receiving_air_yards,
+	receiving_yards_after_catch,
+	receiving_first_downs,
+	receiving_epa,
+	racr,
+	target_share,
+	air_yards_share,
+	wopr,
+	offense_snaps,
+	offense_pct,
+	avg_cushion,
+	avg_separation,
+	avg_intended_air_yards,
+	percent_share_of_intended_air_yards,
+	catch_percentage,
+	avg_yac,
+	avg_yac_above_expectation,
+	roof,
+	surface,
+	weather_hazards,
+	temp,
+	humidity,
+	wind_speed
+from current_season_data.weekly_data wd
+left join current_season_data.offense_snap_counts os
+on wd.player_id = os.id
+and wd.season = os.season
+and wd.week = os.week
+left join current_season_data.ngs_receiving_data ngs
+on wd.player_id = ngs.player_gsis_id
+and wd.season = ngs.season
+and wd.week = ngs.week
+left join (select distinct receiver_player_id, game_id, season, week from current_season_data.full_pbp) game_id
+on wd.player_id = game_id.receiver_player_id
+and wd.season = game_id.season
+and wd.week = game_id.week
+left join current_season_data.game_data
+on game_data.game_id = game_id.game_id
+where position = 'WR';
+
+/* weekly te stats */
+create view current_season_data.weekly_te as
+select
+	player_id,
+	player_name,
+	position,
+	recent_team,
+	wd.season,
+	wd.week,
+	wd.receptions,
+	wd.targets,
+	receiving_yards,
+	receiving_tds,
+	receiving_fumbles,
+	receiving_fumbles_lost,
+	receiving_air_yards,
+	receiving_yards_after_catch,
+	receiving_first_downs,
+	receiving_epa,
+	racr,
+	target_share,
+	air_yards_share,
+	wopr,
+	offense_snaps,
+	offense_pct,
+	avg_cushion,
+	avg_separation,
+	avg_intended_air_yards,
+	percent_share_of_intended_air_yards,
+	catch_percentage,
+	avg_yac,
+	avg_yac_above_expectation,
+	roof,
+	surface,
+	weather_hazards,
+	temp,
+	humidity,
+	wind_speed
+from current_season_data.weekly_data wd
+left join current_season_data.offense_snap_counts os
+on wd.player_id = os.id
+and wd.season = os.season
+and wd.week = os.week
+left join current_season_data.ngs_receiving_data ngs
+on wd.player_id = ngs.player_gsis_id
+and wd.season = ngs.season
+and wd.week = ngs.week
+left join (select distinct receiver_player_id, game_id, season, week from current_season_data.full_pbp) game_id
+on wd.player_id = game_id.receiver_player_id
+and wd.season = game_id.season
+and wd.week = game_id.week
+left join current_season_data.game_data
+on game_data.game_id = game_id.game_id
+where position = 'TE';
+
+/* weekly rb stats */
+create view current_season_data.weekly_rb as
+select
+	player_id,
+	player_name,
+	position,
+	recent_team,
+	wd.season,
+	wd.week,
+	carries,
+	rushing_yards,
+	rushing_tds,
+	rushing_fumbles,
+	rushing_fumbles_lost,
+	rushing_first_downs,
+	rushing_epa,
+	efficiency,
+	percent_attempts_gte_eight_defenders,
+	avg_time_to_los,
+	rush_yards_over_expected,
+	avg_rush_yards,
+	rush_yards_over_expected_per_att,
+	rush_pct_over_expected,
+	wd.receptions,
+	wd.targets,
+	receiving_yards,
+	receiving_tds,
+	receiving_fumbles,
+	receiving_fumbles_lost,
+	receiving_air_yards,
+	receiving_yards_after_catch,
+	receiving_first_downs,
+	receiving_epa,
+	racr,
+	target_share,
+	air_yards_share,
+	wopr,
+	offense_snaps,
+	offense_pct,
+	(carries + wd.targets) as total_usage,
+	roof,
+	surface,
+	weather_hazards,
+	temp,
+	humidity,
+	wind_speed
+from current_season_data.weekly_data wd
+left join current_season_data.offense_snap_counts os
+on wd.player_id = os.id
+and wd.season = os.season
+and wd.week = os.week
+left join current_season_data.ngs_rushing_data ngsr
+on wd.player_id = ngsr.player_gsis_id
+and wd.season = ngsr.season
+and wd.week = ngsr.week
+left join (select distinct rusher_player_id, game_id, season, week from current_season_data.full_pbp) game_id
+on wd.player_id = game_id.rusher_player_id
+and wd.season = game_id.season
+and wd.week = game_id.week
+left join current_season_data.game_data
+on game_data.game_id = game_id.game_id
+where position = 'RB';
+
+/* redzone snaps current season */
+create view current_season_data.redzone_snaps as
+select
+player_id,
+player_name,
+season,
+week,
+sum(redzone) as redzone
+from(
+select
+rusher_player_id as player_id,
+rusher_player_name as player_name,
+season,
+week,
+count(yardline_100) as redzone
+from current_season_data.full_pbp
+where play_type in ('run')
+and two_point_attempt = 0
+and yardline_100 < 20
+and rusher_player_id is not null
+group by rusher_player_id, rusher_player_name, season,week
+
+UNION ALL
+
+select
+receiver_player_id as player_id,
+receiver_player_name as player_name,
+season,
+week,
+count(yardline_100) as redzone
+from current_season_data.full_pbp
+where play_type in ('pass')
+and two_point_attempt = 0
+and yardline_100 < 20
+and receiver_player_id is not null
+group by receiver_player_id, receiver_player_name, season, week
+) as redzone_union
+group by player_id, player_name, season, week
+order by week desc, redzone desc;
+"""
+
+# SQL needed to create reports in PositionReport
+WEEKLY_WR = """
+select 
+wr.player_name, 
+wr.position, 
+wr.season,
+wr.week,
+offense_snaps,
+offense_pct,
+target_share,
+targets,
+receiving_epa,
+redzone
+from current_season_data.weekly_wr wr
+left join current_season_data.redzone_snaps rz
+on wr.player_id = rz.player_id
+and wr.season = rz.season
+and wr.week = rz.week
+"""
+
+WEEKLY_RB = """
+select
+rb.player_name,
+rb.position,
+rb.season,
+rb.week,
+offense_snaps,
+offense_pct,
+total_usage,
+rushing_epa,
+rush_yards_over_expected_per_att,
+rush_pct_over_expected,
+target_share,
+receiving_epa,
+redzone
+from current_season_data.weekly_rb rb
+left join current_season_data.redzone_snaps rz
+on rb.player_id = rz.player_id
+and rb.season = rz.season
+and rb.week = rz.week
+"""
+
+WEEKLY_TE = """
+select 
+te.player_name, 
+te.position, 
+te.season,
+te.week,
+offense_snaps,
+offense_pct,
+target_share,
+targets,
+receiving_epa,
+redzone
+from current_season_data.weekly_te te
+left join current_season_data.redzone_snaps rz
+on te.player_id = rz.player_id
+and te.season = rz.season
+and te.week = rz.week
+"""
