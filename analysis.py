@@ -332,77 +332,80 @@ class NFLVerseData:
     def get_ngs_data(self, stat_type: str):
         return nfl.import_ngs_data(stat_type, self.years)
 
-    def load_sql(self, append: bool = False):
+    def load_sql(self, year, append: bool = False):
         engine = create_engine(
             "postgresql+psycopg2://tbakely@localhost:5432/thefantasybot"
         )
-        schema = "current_season_data"
+        if year == CURRENT_SEASON:
+            schema = "current_season_data"
+        else:
+            schema = "archive_data"
 
         if not append:
             if_exists = "replace"
         else:
             if_exists = "append"
 
-        self.get_full_pbp().to_sql(
-            "full_pbp", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        # self.get_ids().to_sql("ids", engine, if_exists=if_exists, index=False)
-        self.get_game_data().to_sql(
-            "game_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_result_data().to_sql(
-            "result_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_play_data().to_sql(
-            "play_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_passing_data().to_sql(
-            "passing_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_rushing_data().to_sql(
-            "rushing_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_receiving_data().to_sql(
-            "receiving_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_epa_data().to_sql(
-            "epa_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_punting_data().to_sql(
-            "punting_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_kicking_data().to_sql(
-            "kicking_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_drive_data().to_sql(
-            "drive_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_defense_data().to_sql(
-            "defense_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_special_data().to_sql(
-            "special_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_penalty_data().to_sql(
-            "penalty_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        if self.years[0] == 2023:
-            self.get_injuries().to_sql(
-                "injuries", engine, schema=schema, if_exists="replace", index=False
-            )
-        elif self.years[0] >= 2009:
-            self.get_injuries().to_sql(
-                "injuries", engine, schema=schema, if_exists="append", index=False
-            )
-        self.get_weekly().to_sql(
-            "weekly_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_seasonal().to_sql(
-            "seasonal_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_player_info().to_sql(
-            "player_info_data", engine, schema=schema, if_exists=if_exists, index=False
-        )  # Fix this function, season and player_id should be the keys
+        # self.get_full_pbp().to_sql(
+        #     "full_pbp", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # # self.get_ids().to_sql("ids", engine, if_exists=if_exists, index=False)
+        # self.get_game_data().to_sql(
+        #     "game_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_result_data().to_sql(
+        #     "result_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_play_data().to_sql(
+        #     "play_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_passing_data().to_sql(
+        #     "passing_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_rushing_data().to_sql(
+        #     "rushing_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_receiving_data().to_sql(
+        #     "receiving_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_epa_data().to_sql(
+        #     "epa_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_punting_data().to_sql(
+        #     "punting_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_kicking_data().to_sql(
+        #     "kicking_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_drive_data().to_sql(
+        #     "drive_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_defense_data().to_sql(
+        #     "defense_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_special_data().to_sql(
+        #     "special_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_penalty_data().to_sql(
+        #     "penalty_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # if self.years[0] == 2023:
+        #     self.get_injuries().to_sql(
+        #         "injuries", engine, schema=schema, if_exists="replace", index=False
+        #     )
+        # elif self.years[0] >= 2009:
+        #     self.get_injuries().to_sql(
+        #         "injuries", engine, schema=schema, if_exists="append", index=False
+        #     )
+        # self.get_weekly().to_sql(
+        #     "weekly_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_seasonal().to_sql(
+        #     "seasonal_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_player_info().to_sql(
+        #     "player_info_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )  # Fix this function, season and player_id should be the keys
         if self.years[0] >= 2012:
             self.get_snap_counts().to_sql(
                 "snap_count_data",
@@ -411,33 +414,33 @@ class NFLVerseData:
                 if_exists=if_exists,
                 index=False,
             )
-        self.get_combine_data().to_sql(
-            "combine_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_draft_picks().to_sql(
-            "draft_picks_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        if self.years[0] >= 2006:
-            self.get_qbr().to_sql(
-                "qbr_data", engine, schema=schema, if_exists=if_exists, index=False
-            )
-        self.get_ngs_data("passing").to_sql(
-            "ngs_passing_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_ngs_data("rushing").to_sql(
-            "ngs_rushing_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
-        self.get_ngs_data("receiving").to_sql(
-            "ngs_receiving_data",
-            engine,
-            schema=schema,
-            if_exists=if_exists,
-            index=False,
-        )
+        # self.get_combine_data().to_sql(
+        #     "combine_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_draft_picks().to_sql(
+        #     "draft_picks_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # if self.years[0] >= 2006:
+        #     self.get_qbr().to_sql(
+        #         "qbr_data", engine, schema=schema, if_exists=if_exists, index=False
+        #     )
+        # self.get_ngs_data("passing").to_sql(
+        #     "ngs_passing_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_ngs_data("rushing").to_sql(
+        #     "ngs_rushing_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
+        # self.get_ngs_data("receiving").to_sql(
+        #     "ngs_receiving_data",
+        #     engine,
+        #     schema=schema,
+        #     if_exists=if_exists,
+        #     index=False,
+        # )
 
-        self.get_full_ids().to_sql(
-            "full_ids", engine, schema=schema, if_exists="replace"
-        )  # View depend on this table, have to run a SQL command prior, run once then disable
+        # self.get_full_ids().to_sql(
+        #     "full_ids", engine, schema=schema, if_exists="replace"
+        # )  # View depend on this table, have to run a SQL command prior, run once then disable
 
 
 class PositionReport:
@@ -541,19 +544,27 @@ class PositionReport:
 
 
 if __name__ == "__main__":
-    # # Load the sql tables we need for all years
-    # lag = 1
-    # years = np.arange(2023, 1998, -1)
-    # for year in years:
-    #     if year == years[0]:
-    #         NFLVerseData([year]).load_sql(append=False)
-    #     else:
-    #         NFLVerseData([year]).load_sql(append=True)
-
     # Update curent season data
-    execute_statement(
-        "drop table if exists current_season_data.snap_count_data cascade;"
-    )
-    execute_statement("drop view if exists current_season_data.redzone_snaps cascade;")
-    NFLVerseData([2023]).load_sql(append=False)
-    execute_statement(CREATE_VIEWS)
+    execute_statement("drop table if exists archive_data.snap_count_data cascade;")
+    execute_statement("drop view if exists archive_data.redzone_snaps cascade;")
+    # Load the sql tables we need for all years
+    lag = 1
+    years = np.arange(2023, 1998, -1)
+    for year in years:
+        if year == years[0]:
+            NFLVerseData([year]).load_sql(year=year, append=False)
+        else:
+            NFLVerseData([year]).load_sql(year=year, append=True)
+
+    execute_statement(CREATE_VIEWS_ARCHIVE)
+
+    # # Update curent season data
+    # execute_statement(
+    #     "drop table if exists current_season_data.snap_count_data cascade;"
+    # )
+    # execute_statement("drop view if exists current_season_data.redzone_snaps cascade;")
+    # try:
+    #     NFLVerseData([2024]).load_sql(year=CURRENT_SEASON, append=False)
+    #     execute_statement(CREATE_VIEWS)
+    # except Exception as error:
+    #     print(f"Current season data for {CURRENT_SEASON} not yet available.")
