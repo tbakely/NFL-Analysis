@@ -479,10 +479,10 @@ class PositionReport:
                 )
 
             weekly["score"] = (
-                (1 + weekly["target_share_transformed"])
-                * (1 + weekly["receiving_epa_transformed"])
-                * (1 + weekly["offense_pct_transformed"])
-                * (1 + weekly["redzone_transformed"])
+                (1 + 0.40 * weekly["target_share_transformed"])
+                * (1 + 0.50 * weekly["receiving_epa_transformed"])
+                * (1 + 0.05 * weekly["offense_pct_transformed"])
+                * (1 + 0.05 * weekly["redzone_transformed"])
             ) * 10
 
         if self.position == "RB":
@@ -497,7 +497,6 @@ class PositionReport:
                 "total_usage",
                 "rushing_epa",
                 "rush_yards_over_expected_per_att",
-                "rush_pct_over_expected",
                 "target_share",
                 "receiving_epa",
                 "redzone",
@@ -510,15 +509,13 @@ class PositionReport:
                 )
 
             weekly["score"] = (
-                (1 + weekly["offense_pct_transformed"])
-                * (1 + weekly["total_usage_transformed"])
-                * (1 + weekly["rushing_epa_transformed"])
-                * (1 + weekly["rush_yards_over_expected_per_att_transformed"])
-                * (1 + weekly["rush_pct_over_expected_transformed"])
-                * (1 + weekly["target_share_transformed"])
-                * (1 + weekly["receiving_epa_transformed"])
-                * (1 + weekly["redzone_transformed"])
-            )
+                (1 + 0.20 * weekly["offense_pct_transformed"])
+                * (1 + 0.35 * weekly["total_usage_transformed"])
+                * (1 + 0.15 * weekly["rushing_epa_transformed"])
+                * (1 + 0.10 * weekly["target_share_transformed"])
+                * (1 + 0.05 * weekly["receiving_epa_transformed"])
+                * (1 + 0.10 * weekly["redzone_transformed"])
+            ) * 10
 
         result = weekly[
             ["player_name", "position", "season", "week", "score"]
@@ -545,16 +542,17 @@ class PositionReport:
 
 if __name__ == "__main__":
     # Update curent season data
-    execute_statement("drop table if exists archive_data.snap_count_data cascade;")
+    # execute_statement("drop table if exists archive_data.snap_count_data cascade;")
     execute_statement("drop view if exists archive_data.redzone_snaps cascade;")
-    # Load the sql tables we need for all years
-    lag = 1
-    years = np.arange(2023, 1998, -1)
-    for year in years:
-        if year == years[0]:
-            NFLVerseData([year]).load_sql(year=year, append=False)
-        else:
-            NFLVerseData([year]).load_sql(year=year, append=True)
+    execute_statement("drop view if exists archive_data.offense_snap_counts cascade;")
+    # # Load the sql tables we need for all years
+    # lag = 1
+    # years = np.arange(2023, 1998, -1)
+    # for year in years:
+    #     if year == years[0]:
+    #         NFLVerseData([year]).load_sql(year=year, append=False)
+    #     else:
+    #         NFLVerseData([year]).load_sql(year=year, append=True)
 
     execute_statement(CREATE_VIEWS_ARCHIVE)
 
