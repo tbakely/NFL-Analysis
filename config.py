@@ -838,7 +838,7 @@ select
 	season,
 	week,
 	sum(blitz) as total_blitz
-from current_season_data.full_pbp
+from archive_data.full_pbp
 where play_type = 'pass'
 and two_point_attempt = 0
 group by passer_player_id, season, week
