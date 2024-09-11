@@ -562,8 +562,8 @@ if __name__ == "__main__":
     )
     execute_statement("drop view if exists current_season_data.redzone_snaps cascade;")
     try:
-        print("Extracting 2023 data...")
-        NFLVerseData([2023]).load_sql(year=CURRENT_SEASON, append=False)
+        print("Extracting 2024 data...")
+        NFLVerseData([2024]).load_sql(year=CURRENT_SEASON, append=False)
         print("Creating current views...")
         execute_statement(CREATE_VIEWS)
     except Exception as error:
