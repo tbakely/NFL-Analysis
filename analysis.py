@@ -61,7 +61,7 @@ class NFLVerseData:
             if len(str(year)) != 4:
                 raise ValueError("Please enter years in YYYY format.")
         self.years = years
-        self.pbp = nfl.import_pbp_data(years)
+        self.pbp = nfl.import_pbp_data(years, include_participation=False)
         self.id_table = nfl.import_ids()
         self.weekly = nfl.import_weekly_data(years)
         self.seasonal = nfl.import_seasonal_data(years)
@@ -78,9 +78,9 @@ class NFLVerseData:
 
     def get_full_pbp(self):
         pbp = self.pbp.drop_duplicates(subset=KEY_COLS)
-        if self.years[0] > 2015:
-            pbp["blitz"] = np.where(pbp["number_of_pass_rushers"] > 4, 1, 0)
-            pbp["stacked_box"] = np.where(pbp["defenders_in_box"] > 7, 1, 0)
+        # if self.years[0] > 2015:
+            # pbp["blitz"] = np.where(pbp["number_of_pass_rushers"] > 4, 1, 0)
+            # pbp["stacked_box"] = np.where(pbp["defenders_in_box"] > 7, 1, 0)
         return pbp.dropna(subset=KEY_COLS)
 
     def get_game_data(self):
@@ -129,13 +129,13 @@ class NFLVerseData:
                 "offense_formation",
                 "offense_personnel",
                 "defenders_in_box",
-                "defense_personnel",
+                # "defense_personnel",
                 "number_of_pass_rushers",
                 "players_on_play",
                 "offense_players",
-                "defense_players",
+                # "defense_players",
                 "n_offense",
-                "n_defense",
+                # "n_defense",
             ]
             keep_cols = KEY_COLS + PLAY_DATA_COLS
             for col in cols:
@@ -189,18 +189,19 @@ class NFLVerseData:
 
     def get_rushing_data(self):
         if self.years[0] < 2016:
-            cols = ["defenders_in_box"]
-            keep_cols = KEY_COLS + RUSHING_COLS
-            for col in cols:
-                if col in keep_cols:
-                    keep_cols.remove(col)
-            return (
-                self.pbp[keep_cols]
-                .loc[self.pbp["rush"] == 1]
-                .reset_index(drop=True)
-                .drop_duplicates(subset=KEY_COLS)
-                .dropna(subset=KEY_COLS)
-            )
+            # cols = ["defenders_in_box"]
+            # keep_cols = KEY_COLS + RUSHING_COLS
+            # for col in cols:
+            #     if col in keep_cols:
+            #         keep_cols.remove(col)
+            # return (
+            #     self.pbp[keep_cols]
+            #     .loc[self.pbp["rush"] == 1]
+            #     .reset_index(drop=True)
+            #     .drop_duplicates(subset=KEY_COLS)
+            #     .dropna(subset=KEY_COLS)
+            # )
+            return
         else:
             return (
                 self.pbp[KEY_COLS + RUSHING_COLS]
@@ -249,19 +250,20 @@ class NFLVerseData:
 
     def get_defense_data(self):
         if self.years[0] < 2016:
-            cols = ["defense_personnel", "defense_players", "n_defense"]
-            keep_cols = KEY_COLS + DEFENSE_COLS
-            for col in cols:
-                if col in keep_cols:
-                    keep_cols.remove(col)
-            data = (
-                self.pbp[keep_cols]
-                .drop_duplicates(subset=KEY_COLS)
-                .dropna(subset=KEY_COLS)
-            )
-            for col in cols:
-                data[col] = np.nan
-            return data
+            # cols = ["defense_personnel", "defense_players", "n_defense"]
+            # keep_cols = KEY_COLS + DEFENSE_COLS
+            # for col in cols:
+            #     if col in keep_cols:
+            #         keep_cols.remove(col)
+            # data = (
+            #     self.pbp[keep_cols]
+            #     .drop_duplicates(subset=KEY_COLS)
+            #     .dropna(subset=KEY_COLS)
+            # )
+            # for col in cols:
+            #     data[col] = np.nan
+            # return data
+            return
         else:
             return (
                 self.pbp[KEY_COLS + DEFENSE_COLS]
@@ -356,9 +358,9 @@ class NFLVerseData:
         self.get_result_data().to_sql(
             "result_data", engine, schema=schema, if_exists=if_exists, index=False
         )
-        self.get_play_data().to_sql(
-            "play_data", engine, schema=schema, if_exists=if_exists, index=False
-        )
+        # self.get_play_data().to_sql(
+        #     "play_data", engine, schema=schema, if_exists=if_exists, index=False
+        # )
         self.get_passing_data().to_sql(
             "passing_data", engine, schema=schema, if_exists=if_exists, index=False
         )
@@ -541,6 +543,8 @@ class PositionReport:
 
 
 if __name__ == "__main__":
+    print("Extracting 2024 data...")
+    NFLVerseData([2024]).load_sql(year=CURRENT_SEASON, append=False)
     # Update curent season data
     # execute_statement("drop table if exists archive_data.snap_count_data cascade;")
     # execute_statement("drop view if exists archive_data.redzone_snaps cascade;")

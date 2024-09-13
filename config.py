@@ -71,16 +71,16 @@ PLAY_DATA_COLS = [
     "play_type",
     "run_location",
     "run_gap",
-    "offense_formation",
-    "offense_personnel",
-    "defenders_in_box",
-    "defense_personnel",
-    "number_of_pass_rushers",
-    "players_on_play",
-    "offense_players",
-    "defense_players",
-    "n_offense",
-    "n_defense",
+    # "offense_formation",
+    # "offense_personnel",
+    # "defenders_in_box",
+    # "defense_personnel",
+    # "number_of_pass_rushers",
+    # "players_on_play",
+    # "offense_players",
+    # "defense_players",
+    # "n_offense",
+    # "n_defense",
 ]
 
 # Result of play data, add base cols
@@ -147,7 +147,7 @@ PASSING_COLS = [
     "qb_epa",
     "xpass",
     "pass_oe",
-    "number_of_pass_rushers",
+    # "number_of_pass_rushers",
 ]
 
 # Rushing data, add base cols
@@ -170,7 +170,7 @@ RUSHING_COLS = [
     "rusher_jersey_number",
     "rush",
     "rusher_id",
-    "defenders_in_box",
+    # "defenders_in_box",
 ]
 
 # Receiving stats, add base cols
@@ -379,9 +379,9 @@ DEFENSE_COLS = [
     "half_sack_1_player_name",
     "half_sack_2_player_id",
     "half_sack_2_player_name",
-    "defense_personnel",
-    "defense_players",
-    "n_defense",
+    # "defense_personnel",
+    # "defense_players",
+    # "n_defense",
 ]
 
 # Special teams stats, add base cols
@@ -496,9 +496,7 @@ select
 	weather_hazards,
 	temp,
 	humidity,
-	wind_speed,
-	total_blitz,
-	case when offense_snaps <> 0 then (total_blitz / offense_snaps) else null end as blitz_faced_pct
+	wind_speed
 from current_season_data.weekly_data wd
 left join current_season_data.ngs_passing_data ngs
 on wd.player_id = ngs.player_gsis_id
@@ -513,23 +511,8 @@ on wd.player_id = game_id.passer_player_id
 and wd.season = game_id.season
 and wd.week = game_id.week
 left join current_season_data.game_data
-on game_data.game_id = game_id.game_id
-left join (
-select
-	passer_player_id,
-	season,
-	week,
-	sum(blitz) as total_blitz
-from current_season_data.full_pbp
-where play_type = 'pass'
-and two_point_attempt = 0
-group by passer_player_id, season, week
-) blitz
-on wd.player_id = blitz.passer_player_id
-and wd.season = blitz.season
-and wd.week = blitz.week
-where position = 'QB'
-and wd.attempts > 0;
+on game_data.game_id = game_id.game_id;
+
 
 /* weekly wr stats */
 create view current_season_data.weekly_wr as
